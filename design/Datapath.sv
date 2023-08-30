@@ -1,3 +1,4 @@
+
 `timescale 1ns / 1ps
 
 import Pipe_Buf_Reg_PKG::*;
@@ -18,6 +19,9 @@ module Datapath #(
     MemWrite,  // Register file or Immediate MUX // Memroy Writing Enable
     MemRead,  // Memroy Reading Enable
     Branch,  // Branch Enable
+    JalType,
+    JalRType,
+    halt,
     input  logic [          1:0] ALUOp,
     input  logic [ALU_CC_W -1:0] ALU_CC,         // ALU Control Code ( input of the ALU )
     output logic [          6:0] opcode,
@@ -26,8 +30,8 @@ module Datapath #(
     output logic [          1:0] ALUOp_Current,
     output logic [   DATA_W-1:0] WB_Data,        //Result After the last MUX
 
-    // Para depuração no tesbench:
-    output logic [4:0] reg_num,  //número do registrador que foi escrito
+    // Para depuraÁ„o no tesbench:
+    output logic [4:0] reg_num,  //n˙mero do registrador que foi escrito
     output logic [DATA_W-1:0] reg_data,  //valor que foi escrito no registrador
     output logic reg_write_sig,  //sinal de escrita no registrador
 
@@ -51,6 +55,8 @@ module Datapath #(
   logic [DATA_W-1:0] FAmux_Result;
   logic [DATA_W-1:0] FBmux_Result;
   logic Reg_Stall;  //1: PC fetch same, Register not update
+  logic IsJal;
+  logic [DATA_W-1:0] reg_data_temp;
 
   if_id_reg A;
   id_ex_reg B;
@@ -141,6 +147,9 @@ module Datapath #(
       B.MemWrite <= 0;
       B.ALUOp <= 0;
       B.Branch <= 0;
+      B.JalType <= 0;
+      B.JalRType <= 0;
+      B.halt <= 0;
       B.Curr_Pc <= 0;
       B.RD_One <= 0;
       B.RD_Two <= 0;
@@ -159,6 +168,9 @@ module Datapath #(
       B.MemWrite <= MemWrite;
       B.ALUOp <= ALUOp;
       B.Branch <= Branch;
+      B.JalType <= JalType;
+      B.JalRType <= JalRType;
+      B.halt <= halt;
       B.Curr_Pc <= A.Curr_Pc;
       B.RD_One <= Reg1;
       B.RD_Two <= Reg2;
@@ -218,14 +230,21 @@ module Datapath #(
       ALUResult
   );
   BranchUnit #(9) brunit (
+      B.ALUOp,
       B.Curr_Pc,
       B.ImmG,
       B.Branch,
       ALUResult,
+      B.func3,
+      B.JalRType,
+      B.halt,
+      FAmux_Result,
+      SrcB,
       BrImm,
       Old_PC_Four,
       BrPC,
-      PcSel
+      PcSel,
+      IsJal
   );
 
   // EX_MEM_Reg C;
@@ -236,6 +255,8 @@ module Datapath #(
       C.MemtoReg <= 0;
       C.MemRead <= 0;
       C.MemWrite <= 0;
+      C.JalType <= 0;
+      C.JalRType <= 0;
       C.Pc_Imm <= 0;
       C.Pc_Four <= 0;
       C.Imm_Out <= 0;
@@ -249,6 +270,8 @@ module Datapath #(
       C.MemtoReg <= B.MemtoReg;
       C.MemRead <= B.MemRead;
       C.MemWrite <= B.MemWrite;
+      C.JalType <= B.JalType;
+      C.JalRType <= B.JalRType;
       C.Pc_Imm <= BrImm;
       C.Pc_Four <= Old_PC_Four;
       C.Imm_Out <= B.ImmG;
@@ -284,6 +307,8 @@ module Datapath #(
         begin
       D.RegWrite <= 0;
       D.MemtoReg <= 0;
+      D.JalType <= 0;
+      D.JalRType <= 0;
       D.Pc_Imm <= 0;
       D.Pc_Four <= 0;
       D.Imm_Out <= 0;
@@ -293,6 +318,8 @@ module Datapath #(
     end else begin
       D.RegWrite <= C.RegWrite;
       D.MemtoReg <= C.MemtoReg;
+      D.JalType <= C.JalType;
+      D.JalRType <= C.JalRType;
       D.Pc_Imm <= C.Pc_Imm;
       D.Pc_Four <= C.Pc_Four;
       D.Imm_Out <= C.Imm_Out;
@@ -308,9 +335,18 @@ module Datapath #(
       D.Alu_Result,
       D.MemReadData,
       D.MemtoReg,
+      reg_data_temp
+  );
+
+
+  mux2 #(32) isjal (
+      reg_data_temp,
+      D.Pc_Four,
+      D.JalType,
       WrmuxSrc
   );
 
-  assign WB_Data = WrmuxSrc;
+   
+  
 
 endmodule
