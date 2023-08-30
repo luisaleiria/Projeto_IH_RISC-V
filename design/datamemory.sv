@@ -54,11 +54,9 @@ module datamemory #(
           //if(Dataout[15]==0) rd <= {{16{1'b0}}, Dataout[15:0]};
           //else rd <=  {{16{1'b1}}, Dataout[15:0]};
         3'b100:   //LBU
-          rd <= $unsigned(Dataout[7:0]);
-          //rd <= {{24{1'b0}}, Dataout[7:0]}; 
+          rd <= {{24{1'b0}}, Dataout[7:0]}; 
         3'b101:    //LHU
-          rd <= $unsigned(Dataout[15:0]);
-          //rd <= {{16{1'b0}}, Dataout[15:0]};
+          rd <= {{16{1'b0}}, Dataout[15:0]};
         default: rd <= Dataout;
       endcase
     
@@ -69,14 +67,12 @@ module datamemory #(
           Datain <= wd;
         end
 	      3'b001: begin //SH
-	        Wr <= 4'b1100;
-          Datain[15:0] <= wd;
-          
+	        Wr <= 4'b1111;
+          //Datain = {wd[15] ? 16'hFFFF : 16'b0, wd[15:0]};
         end
         3'b000: begin //SB
-	        Wr <= 4'b0100;
-          Datain[7:0] <= wd;
-          //Datain <= {wd[7] ? 24'hFFFFFF : 24'b0, wd[7:0]};
+	        Wr <= 4'b1111;
+          //Datain = {wd[7] ? 24'hFFFFFF : 24'b0, wd[7:0]};
         end
         default: begin
           Wr <= 4'b1111;
@@ -87,4 +83,5 @@ module datamemory #(
   end
 
 endmodule
+
 
