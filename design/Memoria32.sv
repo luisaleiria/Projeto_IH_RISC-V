@@ -1,5 +1,6 @@
+
 /*-----------------------------------------------------------------------------
--- Title		: Memória da CPU
+-- Title		: MemÛria da CPU
 -- Project		: CPU 
 --------------------------------------------------------------------------------
 -- File			: Memoria32.sv
@@ -13,7 +14,7 @@
 -- Targets		: 
 -- Dependency	: 
 --------------------------------------------------------------------------------
--- Description	: Entidade responsável pela leitura e escrita em memória (dados de 32 bits).
+-- Description	: Entidade respons·vel pela leitura e escrita em memÛria (dados de 32 bits).
 --------------------------------------------------------------------------------
 -- Copyright (c) notice
 --		Universidade Federal de Pernambuco (UFPE).
@@ -66,7 +67,7 @@ module Memoria32 (
   assign inS1 = Datain[15:8];
   assign inS0 = Datain[7:0];
 
-  //Bancos de memórias (cada banco possui 65536 bytes)
+  //Bancos de memÛrias (cada banco possui 65536 bytes)
   //0
   ramOnChip32 #(
       .ramSize(65536),
